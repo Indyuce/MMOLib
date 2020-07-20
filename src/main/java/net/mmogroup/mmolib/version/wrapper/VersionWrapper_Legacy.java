@@ -38,12 +38,15 @@ import net.mmogroup.mmolib.api.item.NBTItem;
 public class VersionWrapper_Legacy implements VersionWrapper {
 
 	@Override
-	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed, float size, Color color) {
-		loc.getWorld().spawnParticle(particle, loc, 0, (double) color.getRed() / 255, (double) color.getGreen() / 255, (double) color.getBlue() / 255);
+	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed,
+			float size, Color color) {
+		loc.getWorld().spawnParticle(particle, loc, 0, (double) color.getRed() / 255, (double) color.getGreen() / 255,
+				(double) color.getBlue() / 255);
 	}
 
 	@Override
-	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed, Material material) {
+	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed,
+			Material material) {
 		loc.getWorld().spawnParticle(particle, loc, amount, x, y, z, 0, new MaterialData(material));
 	}
 
@@ -55,8 +58,11 @@ public class VersionWrapper_Legacy implements VersionWrapper {
 	@Override
 	public FurnaceRecipe getFurnaceRecipe(String path, ItemStack item, Material material, float exp, int cook) {
 		try {
-			return (FurnaceRecipe) Class.forName("org.bukkit.inventory.FurnaceRecipe").getConstructor(ItemStack.class, Material.class, Integer.TYPE, Integer.TYPE).newInstance(item, material, 0, (int) exp);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException exception) {
+			return (FurnaceRecipe) Class.forName("org.bukkit.inventory.FurnaceRecipe")
+					.getConstructor(ItemStack.class, Material.class, Integer.TYPE, Integer.TYPE)
+					.newInstance(item, material, 0, (int) exp);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException | ClassNotFoundException exception) {
 			exception.printStackTrace();
 			return null;
 		}
@@ -98,18 +104,17 @@ public class VersionWrapper_Legacy implements VersionWrapper {
 		 * Calculates intersection with the given ray between a certain distance
 		 * interval.
 		 * <p>
-		 * Ray-box intersection is using IEEE numerical properties to ensure the
-		 * test is both robust and efficient, as described in: <br>
+		 * Ray-box intersection is using IEEE numerical properties to ensure the test is
+		 * both robust and efficient, as described in: <br>
 		 * <code>Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley: "An
 		 * Efficient and Robust Ray-Box Intersection Algorithm" Journal of graphics
 		 * tools, 10(1):49-54, 2005</code>
 		 * 
-		 * @param ray
-		 *            incident ray
+		 * @param ray     incident ray
 		 * @param minDist
 		 * @param maxDist
-		 * @return intersection point on the bounding box (only the first is
-		 *         returned) or null if no intersection
+		 * @return intersection point on the bounding box (only the first is returned)
+		 *         or null if no intersection
 		 */
 		public boolean intersectsRay(AxisAlignedBB box) {
 			Vec3D invDir = new Vec3D(1f / dir.x, 1f / dir.y, 1f / dir.z);
@@ -190,12 +195,15 @@ public class VersionWrapper_Legacy implements VersionWrapper {
 
 	@Override
 	public NBTItem copyTexture(NBTItem item) {
-		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(item.getItem().getType(), 1, item.getItem().getDurability())).addTag(new ItemTag("Unbreakable", true));
+		return MMOLib.plugin.getNMS()
+				.getNBTItem(new ItemStack(item.getItem().getType(), 1, item.getItem().getDurability()))
+				.addTag(new ItemTag("Unbreakable", true));
 	}
 
 	@Override
 	public ItemStack textureItem(Material material, int model) {
-		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(material, 1, (short) model)).addTag(new ItemTag("Unbreakable", true)).toItem();
+		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(material, 1, (short) model))
+				.addTag(new ItemTag("Unbreakable", true)).toItem();
 	}
 
 	@Override
@@ -252,8 +260,11 @@ public class VersionWrapper_Legacy implements VersionWrapper {
 	@Override
 	public FurnaceRecipe getFurnaceRecipe(NamespacedKey key, ItemStack item, Material material, float exp, int cook) {
 		try {
-			return (FurnaceRecipe) Class.forName("org.bukkit.inventory.FurnaceRecipe").getConstructor(ItemStack.class, Material.class, Integer.TYPE, Integer.TYPE).newInstance(item, material, 0, (int) exp);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException exception) {
+			return (FurnaceRecipe) Class.forName("org.bukkit.inventory.FurnaceRecipe")
+					.getConstructor(ItemStack.class, Material.class, Integer.TYPE, Integer.TYPE)
+					.newInstance(item, material, 0, (int) exp);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException | ClassNotFoundException exception) {
 			exception.printStackTrace();
 			return null;
 		}
@@ -271,7 +282,10 @@ public class VersionWrapper_Legacy implements VersionWrapper {
 	@Override
 	public boolean isUndead(Entity entity) {
 		EntityType type = entity.getType();
-		return type == EntityType.SKELETON || type == EntityType.STRAY || type == EntityType.WITHER_SKELETON || type == EntityType.ZOMBIE || type == EntityType.HUSK || type == EntityType.PIG_ZOMBIE || type == EntityType.ZOMBIE_VILLAGER || type == EntityType.WITHER || type == EntityType.SKELETON_HORSE || type == EntityType.ZOMBIE_HORSE;
+		return type == EntityType.SKELETON || type == EntityType.STRAY || type == EntityType.WITHER_SKELETON
+				|| type == EntityType.ZOMBIE || type == EntityType.HUSK || type.name().toLowerCase().equals("pig_zombie")
+				|| type == EntityType.ZOMBIE_VILLAGER || type == EntityType.WITHER || type == EntityType.SKELETON_HORSE
+				|| type == EntityType.ZOMBIE_HORSE;
 	}
 
 	@Override

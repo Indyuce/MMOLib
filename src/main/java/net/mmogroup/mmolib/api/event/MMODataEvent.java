@@ -2,18 +2,18 @@ package net.mmogroup.mmolib.api.event;
 
 import org.bukkit.event.player.PlayerEvent;
 
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 
 public abstract class MMODataEvent extends PlayerEvent {
-	private final MMOData playerData;
+	private final MMOPlayerData playerData;
 
-	public MMODataEvent(MMOData playerData) {
+	public MMODataEvent(MMOPlayerData playerData) {
 		super(playerData.getPlayer());
 
 		this.playerData = playerData;
 	}
 
-	public MMOData getData() {
+	public MMOPlayerData getData() {
 		return playerData;
 	}
 }

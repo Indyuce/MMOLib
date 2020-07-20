@@ -16,6 +16,14 @@ crit-coefficient: 2.0
 # Same but for skill damage.
 spell-crit-coefficient: 1.5
 
+# Put that option to true if you are updating to MMOLib 1.1+
+# Don't use it if you are using MMOLib for the first time.
+# Requires a reload when changed.
+#
+# That option makes sure players all have their base
+# attribute value set to the default attribute base value.
+fix-player-attributes: true
+
 # Default and max. values of armor stats. These systems
 # all have a cooldown which can be reduced using the
 # '*** Cooldown Reduction' item stat.
@@ -52,23 +60,3 @@ mitigation:
         cooldown:
             base: 8.0
             min: 2.0
-
-# Wearing heavy pieces of armors reduces
-# your movement speed by a specific amount,
-# relative to your current move speed.
-heavy-armors:
-
-    # The movement speed reduction in % for each heavy armor piece worn.
-    speed-malus: 5.0
-    
-    # The list of heavy armor pieces. By default gold is not
-    # considered a heavy armor to incite players to use this armor set.
-    list:
-    - DIAMOND_HELMET
-    - DIAMOND_CHESTPLATE
-    - DIAMOND_LEGGINGS
-    - DIAMOND_BOOTS
-    - IRON_HELMET
-    - IRON_CHESTPLATE
-    - IRON_LEGGINGS
-    - IRON_BOOTS

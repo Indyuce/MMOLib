@@ -18,10 +18,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import net.mmogroup.mmolib.api.explorer.AltChar;
 import net.mmogroup.mmolib.api.explorer.AttributeData;
 import net.mmogroup.mmolib.api.explorer.ChatInput;
 import net.mmogroup.mmolib.api.explorer.ItemBuilder;
+import net.mmogroup.mmolib.api.util.AltChar;
 import net.mmogroup.mmolib.command.ExploreAttributesCommand;
 
 public class AttributeExplorer extends PluginInventory {

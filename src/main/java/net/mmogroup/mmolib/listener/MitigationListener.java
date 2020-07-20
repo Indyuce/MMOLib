@@ -25,7 +25,7 @@ import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.event.mitigation.PlayerBlockEvent;
 import net.mmogroup.mmolib.api.event.mitigation.PlayerDodgeEvent;
 import net.mmogroup.mmolib.api.event.mitigation.PlayerParryEvent;
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 import net.mmogroup.mmolib.api.player.MitigationType;
 import net.mmogroup.mmolib.api.stat.StatMap;
 import net.mmogroup.mmolib.version.VersionSound;
@@ -72,7 +72,7 @@ public class MitigationListener implements Listener {
 			return;
 
 		Player player = (Player) event.getEntity();
-		MMOData playerData = MMOData.get(player);
+		MMOPlayerData playerData = MMOPlayerData.get(player);
 		StatMap stats = playerData.getStatMap();
 
 		/*

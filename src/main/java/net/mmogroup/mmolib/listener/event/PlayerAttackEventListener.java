@@ -13,9 +13,10 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.AttackResult;
 import net.mmogroup.mmolib.api.DamageType;
+import net.mmogroup.mmolib.api.RegisteredAttack;
 import net.mmogroup.mmolib.api.event.EntityKillEntityEvent;
 import net.mmogroup.mmolib.api.event.PlayerAttackEvent;
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 
 public class PlayerAttackEventListener implements Listener {
 
@@ -25,56 +26,57 @@ public class PlayerAttackEventListener implements Listener {
 			return;
 
 		/*
-		 * check for event.
+		 * looks for a registered attack from MMOLib damage system, or
+		 * initializes an attack based either on a melee or projectile vanilla
+		 * attack
 		 */
-		AttackResult result = new AttackResult(event.getDamage());
-		LivingEntity damager = getDamager(result, event);
+		RegisteredAttack attack = getAttack(event);
 
 		/*
-		 * if the damage source cannot be found, just return.
+		 * if the damager cannot be found, no PlayerAttackEvent should be called
 		 */
-		if (damager == null)
+		if (attack == null || attack.getDamager() == null)
 			return;
 
 		/*
 		 * check damage systems from other MMOCore plugins + from MMOCore, and
 		 * register an attack damage for easier plugin calculations
 		 */
-		if (damager instanceof Player && !damager.hasMetadata("NPC")) {
-			AttackResult found = MMOLib.plugin.getDamage().findInfo(event.getEntity());
-			if (found != null)
-				result.getTypes().addAll(found.getTypes());
+		if (attack.getDamager() instanceof Player && !attack.getDamager().hasMetadata("NPC")) {
 
-			/*
-			 * if attack is not recognized, weapon by default.
-			 */
-			else {
-				result.getTypes().add(DamageType.WEAPON);
-				result.getTypes().add(DamageType.PHYSICAL);
-			}
-
-			PlayerAttackEvent attackEvent = new PlayerAttackEvent(MMOData.get((Player) damager), event, result);
+			PlayerAttackEvent attackEvent = new PlayerAttackEvent(MMOPlayerData.get((Player) attack.getDamager()), event, attack.getResult());
 			Bukkit.getPluginManager().callEvent(attackEvent);
 			if (attackEvent.isCancelled())
 				return;
 
-			event.setDamage(result.getDamage());
+			event.setDamage(attack.getResult().getDamage());
 		}
 
 		/*
 		 * checks for killing
 		 */
 		if (event.getFinalDamage() >= ((Damageable) event.getEntity()).getHealth())
-			Bukkit.getPluginManager().callEvent(new EntityKillEntityEvent(damager, event.getEntity()));
+			Bukkit.getPluginManager().callEvent(new EntityKillEntityEvent(attack.getDamager(), event.getEntity()));
 	}
 
-	private LivingEntity getDamager(AttackResult result, EntityDamageByEntityEvent event) {
+	private RegisteredAttack getAttack(EntityDamageByEntityEvent event) {
+
+		/*
+		 * check MMOLib registered attacks database and updates damage dealt
+		 * based on the value given by the Bukkit event
+		 */
+		RegisteredAttack custom = MMOLib.plugin.getDamage().findInfo(event.getEntity());
+		if (custom != null) {
+			custom.getResult().setDamage(event.getDamage());
+			return custom;
+		}
 
 		/*
 		 * check direct damager
 		 */
 		if (event.getDamager() instanceof LivingEntity)
-			return (LivingEntity) event.getDamager();
+			return new RegisteredAttack(new AttackResult(event.getDamage(), DamageType.WEAPON, DamageType.PHYSICAL),
+					(LivingEntity) event.getDamager());
 
 		/*
 		 * checks projectile and add damage type, which supports every vanilla
@@ -82,10 +84,9 @@ public class PlayerAttackEventListener implements Listener {
 		 */
 		if (event.getDamager() instanceof Projectile) {
 			Projectile proj = (Projectile) event.getDamager();
-			if (proj.getShooter() instanceof LivingEntity) {
-				result.getTypes().add(DamageType.PROJECTILE);
-				return (LivingEntity) proj.getShooter();
-			}
+			if (proj.getShooter() instanceof LivingEntity)
+				return new RegisteredAttack(new AttackResult(event.getDamage(), DamageType.WEAPON, DamageType.PHYSICAL, DamageType.PROJECTILE),
+						(LivingEntity) proj.getShooter());
 		}
 
 		/*

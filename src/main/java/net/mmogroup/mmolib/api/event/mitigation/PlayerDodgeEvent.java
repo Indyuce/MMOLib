@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 import net.mmogroup.mmolib.api.event.MMODataEvent;
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 
 public class PlayerDodgeEvent extends MMODataEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
@@ -13,7 +13,7 @@ public class PlayerDodgeEvent extends MMODataEvent implements Cancellable {
 	private final EntityDamageEvent event;
 	private boolean cancelled;
 
-	public PlayerDodgeEvent(MMOData player, EntityDamageEvent event) {
+	public PlayerDodgeEvent(MMOPlayerData player, EntityDamageEvent event) {
 		super(player);
 
 		this.event = event;
@@ -35,6 +35,10 @@ public class PlayerDodgeEvent extends MMODataEvent implements Cancellable {
 
 	@Override
 	public HandlerList getHandlers() {
+		return handlers;
+	}
+
+	public static HandlerList getHandlerList() {
 		return handlers;
 	}
 }

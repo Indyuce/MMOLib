@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,12 +34,14 @@ import net.mmogroup.mmolib.api.item.NBTItem;
 public class VersionWrapper_1_14 implements VersionWrapper {
 
 	@Override
-	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed, float size, Color color) {
+	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed,
+			float size, Color color) {
 		loc.getWorld().spawnParticle(particle, loc, amount, x, y, z, speed, new Particle.DustOptions(color, size));
 	}
 
 	@Override
-	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed, Material material) {
+	public void spawnParticle(Particle particle, Location loc, int amount, double x, double y, double z, double speed,
+			Material material) {
 		loc.getWorld().spawnParticle(particle, loc, amount, x, y, z, 0, material.createBlockData());
 	}
 
@@ -49,13 +52,15 @@ public class VersionWrapper_1_14 implements VersionWrapper {
 
 	@Override
 	public FurnaceRecipe getFurnaceRecipe(String path, ItemStack item, Material material, float exp, int cook) {
-		return new FurnaceRecipe(new NamespacedKey(MMOLib.plugin, "mmoitems_furnace_" + path), item, material, exp, cook);
+		return new FurnaceRecipe(new NamespacedKey(MMOLib.plugin, "mmoitems_furnace_" + path), item, material, exp,
+				cook);
 	}
 
 	@Override
 	public MMORayTraceResult rayTrace(Location loc, Vector direction, double range, Predicate<Entity> option) {
-		RayTraceResult hit = loc.getWorld().rayTraceEntities(loc, direction, range, option);
-		return new MMORayTraceResult(hit != null ? (LivingEntity) hit.getHitEntity() : null, hit != null ? hit.getHitPosition().distance(loc.toVector()) : range);
+		RayTraceResult hit = loc.getWorld().rayTrace(loc, direction, range, FluidCollisionMode.NEVER, true, .2, option);
+		return new MMORayTraceResult(hit != null ? (LivingEntity) hit.getHitEntity() : null,
+				hit != null ? hit.getHitPosition().distance(loc.toVector()) : range);
 	}
 
 	@Override
@@ -97,12 +102,14 @@ public class VersionWrapper_1_14 implements VersionWrapper {
 
 	@Override
 	public NBTItem copyTexture(NBTItem item) {
-		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(item.getItem().getType())).addTag(new ItemTag("CustomModelData", item.getInteger("CustomModelData")));
+		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(item.getItem().getType()))
+				.addTag(new ItemTag("CustomModelData", item.getInteger("CustomModelData")));
 	}
 
 	@Override
 	public ItemStack textureItem(Material material, int model) {
-		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(material)).addTag(new ItemTag("CustomModelData", model)).toItem();
+		return MMOLib.plugin.getNMS().getNBTItem(new ItemStack(material)).addTag(new ItemTag("CustomModelData", model))
+				.toItem();
 	}
 
 	@Override
@@ -132,7 +139,10 @@ public class VersionWrapper_1_14 implements VersionWrapper {
 	@Override
 	public boolean isUndead(Entity entity) {
 		EntityType type = entity.getType();
-		return type == EntityType.SKELETON || type == EntityType.STRAY || type == EntityType.WITHER_SKELETON || type == EntityType.ZOMBIE || type == EntityType.DROWNED || type == EntityType.HUSK || type == EntityType.PIG_ZOMBIE || type == EntityType.ZOMBIE_VILLAGER || type == EntityType.PHANTOM || type == EntityType.WITHER || type == EntityType.SKELETON_HORSE || type == EntityType.ZOMBIE_HORSE;
+		return type == EntityType.SKELETON || type == EntityType.STRAY || type == EntityType.WITHER_SKELETON
+				|| type == EntityType.ZOMBIE || type == EntityType.DROWNED || type == EntityType.HUSK
+				|| type.name().toLowerCase().equals("pig_zombie") || type == EntityType.ZOMBIE_VILLAGER || type == EntityType.PHANTOM
+				|| type == EntityType.WITHER || type == EntityType.SKELETON_HORSE || type == EntityType.ZOMBIE_HORSE;
 	}
 
 	@Override

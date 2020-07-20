@@ -6,12 +6,17 @@ import java.util.function.Consumer;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.attribute.AttributeModifier.Operation;
 
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.stat.StatInstance;
+import net.mmogroup.mmolib.api.stat.StatMap;
 
-public class AttributeStatHandler implements Consumer<MMOData> {
+public class AttributeStatHandler implements Consumer<StatMap> {
 	private final Attribute attribute;
 	private final String stat;
+
+	@Deprecated
+	public static boolean updateAttributes;
 
 	public AttributeStatHandler(Attribute attribute, String stat) {
 		this.attribute = attribute;
@@ -19,15 +24,21 @@ public class AttributeStatHandler implements Consumer<MMOData> {
 	}
 
 	@Override
-	public void accept(MMOData data) {
-		AttributeInstance ins = data.getPlayer().getAttribute(attribute);
+	public void accept(StatMap stats) {
+		AttributeInstance ins = stats.getPlayerData().getPlayer().getAttribute(attribute);
 		removeModifiers(ins);
- 
+
+		if (updateAttributes)
+			ins.setBaseValue(ins.getDefaultValue());
+
 		/*
-		 * TODO not use base attribute value but rather add an attribute
-		 * modifier which cancels out the default value.
+		 * if the attribute is a default attribute, substract default value from
+		 * it so that it compensates it
 		 */
-		ins.setBaseValue(data.getStatMap().getStat(stat));
+		StatInstance statIns = stats.getInstance(stat);
+		double d = statIns.getTotal();
+		if (d != statIns.getVanilla())
+			ins.addModifier(new AttributeModifier("mmolib.main", d - statIns.getVanilla(), Operation.ADD_NUMBER));
 	}
 
 	/*

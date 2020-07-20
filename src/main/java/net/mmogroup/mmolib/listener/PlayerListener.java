@@ -10,13 +10,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.DamageType;
-import net.mmogroup.mmolib.api.event.ArmorEquipEvent;
 import net.mmogroup.mmolib.api.event.PlayerAttackEvent;
-import net.mmogroup.mmolib.api.player.MMOData;
-import net.mmogroup.mmolib.api.stat.SharedStat;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 import net.mmogroup.mmolib.api.stat.StatMap;
 import net.mmogroup.mmolib.gui.PluginInventory;
 
@@ -32,11 +31,16 @@ public class PlayerListener implements Listener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void a(PlayerJoinEvent event) {
-		MMOData.setup(event.getPlayer());
+		MMOPlayerData.setup(event.getPlayer());
+	}
+
+	@EventHandler
+	public void b(PlayerQuitEvent event) {
+		MMOPlayerData.get(event.getPlayer()).setPlayer(null);
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-	public void b(PlayerAttackEvent event) {
+	public void c(PlayerAttackEvent event) {
 
 		/*
 		 * damage modifiers. they do not stack geometrically (not 1.1 x 1.2 ...
@@ -76,14 +80,5 @@ public class PlayerListener implements Listener {
 	public void d(InventoryClickEvent event) {
 		if (event.getInventory().getHolder() != null && event.getInventory().getHolder() instanceof PluginInventory)
 			((PluginInventory) event.getInventory().getHolder()).whenClicked(event);
-	}
-
-	/*
-	 * updates the player's movement speed when equipping an armor to update the
-	 * speed malus reduction from the armors.
-	 */
-	@EventHandler
-	public void e(ArmorEquipEvent event) {
-		MMOData.get(event.getPlayer()).getStatMap().update(SharedStat.MOVEMENT_SPEED);
 	}
 }

@@ -5,12 +5,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.stat.StatInstance;
 
-
-public class TemporaryStatModifier extends StatModifier {
+public class TemporaryStatModifier extends StatModifier implements Closable {
 	private final BukkitRunnable runnable;
-	
-	public TemporaryStatModifier(double d, long duration, boolean relative, String key, StatInstance ins) {
-		super(d, relative);
+
+	public TemporaryStatModifier(double d, long duration, ModifierType type, String key, StatInstance ins) {
+		super(d, type);
 
 		(runnable = new BukkitRunnable() {
 			public void run() {
@@ -19,6 +18,7 @@ public class TemporaryStatModifier extends StatModifier {
 		}).runTaskLater(MMOLib.plugin, duration);
 	}
 
+	@Override
 	public void close() {
 		if (!runnable.isCancelled())
 			runnable.cancel();

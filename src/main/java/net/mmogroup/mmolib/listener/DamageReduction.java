@@ -16,7 +16,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.AttackResult;
 import net.mmogroup.mmolib.api.DamageType;
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.RegisteredAttack;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
 import net.mmogroup.mmolib.api.stat.StatMap;
 
 public class DamageReduction implements Listener {
@@ -26,12 +27,13 @@ public class DamageReduction implements Listener {
 		if (!(event.getEntity() instanceof Player) || event.getEntity().hasMetadata("NPC"))
 			return;
 
-		MMOData data = MMOData.get((OfflinePlayer) event.getEntity());
+		MMOPlayerData data = MMOPlayerData.get((OfflinePlayer) event.getEntity());
 		DamageReductionCalculator calculator = new DamageReductionCalculator(data);
-		AttackResult res = MMOLib.plugin.getDamage().findInfo(event.getEntity());
+		RegisteredAttack attack = MMOLib.plugin.getDamage().findInfo(event.getEntity());
+		AttackResult result = attack == null ? new AttackResult(true, DamageType.WEAPON, DamageType.PHYSICAL) : attack.getResult();
 
 		for (DamageReductionType type : DamageReductionType.values())
-			if (type.isApplicable(res, event))
+			if (type.isApplicable(result, event))
 				calculator.applyReduction(type);
 
 		event.setDamage(event.getDamage() * calculator.getCoefficient());
@@ -47,12 +49,12 @@ public class DamageReduction implements Listener {
 
 		private double c = 1;
 
-		public DamageReductionCalculator(MMOData data) {
+		public DamageReductionCalculator(MMOPlayerData data) {
 			this.stats = data.getStatMap();
 		}
 
 		public void applyReduction(DamageReductionType type) {
-			c *= 1 - Math.min(1, Math.max(0, stats.getStat(type.getStat()) / 100));
+			c *= 1 - Math.min(1, stats.getStat(type.getStat()) / 100);
 		}
 
 		double getCoefficient() {
@@ -89,7 +91,9 @@ public class DamageReduction implements Listener {
 		PHYSICAL((result, event) -> event instanceof EntityDamageByEntityEvent || (result != null && result.hasType(DamageType.PHYSICAL))),
 		WEAPON((result, event) -> result != null && result.hasType(DamageType.WEAPON)),
 		SKILL((result, event) -> result != null && result.hasType(DamageType.SKILL)),
-		PROJECTILE((result, event) -> (event instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) event).getDamager() instanceof Projectile) || (result != null && result.hasType(DamageType.PROJECTILE)));
+		PROJECTILE((result,
+				event) -> (event instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) event).getDamager() instanceof Projectile)
+						|| (result != null && result.hasType(DamageType.PROJECTILE)));
 
 		private final String stat;
 		private final BiFunction<AttackResult, EntityDamageEvent, Boolean> apply;

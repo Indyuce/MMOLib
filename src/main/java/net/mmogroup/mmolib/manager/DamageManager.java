@@ -21,9 +21,10 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import net.mmogroup.mmolib.MMOLib;
 import net.mmogroup.mmolib.api.AttackResult;
 import net.mmogroup.mmolib.api.DamageHandler;
+import net.mmogroup.mmolib.api.RegisteredAttack;
 
 public class DamageManager implements Listener, DamageHandler {
-	private final Map<Integer, AttackResult> customDamage = new HashMap<>();
+	private final Map<Integer, RegisteredAttack> customDamage = new HashMap<>();
 	private final List<DamageHandler> handlers = new ArrayList<>();
 
 	private static final AttributeModifier noKnockback = new AttributeModifier(UUID.randomUUID(), "noKnockback", 100, Operation.ADD_NUMBER);
@@ -42,7 +43,7 @@ public class DamageManager implements Listener, DamageHandler {
 	}
 
 	@Override
-	public AttackResult getDamage(Entity entity) {
+	public RegisteredAttack getDamage(Entity entity) {
 		return customDamage.get(entity.getEntityId());
 	}
 
@@ -54,11 +55,7 @@ public class DamageManager implements Listener, DamageHandler {
 		if (target.hasMetadata("NPC") || player.hasMetadata("NPC"))
 			return;
 
-		/*
-		 * calculate extra damage depending on the type of attack and the entity
-		 * that is being damaged
-		 */
-		customDamage.put(target.getEntityId(), result);
+		customDamage.put(target.getEntityId(), new RegisteredAttack(result, player));
 
 		if (!knockback)
 			try {
@@ -75,7 +72,7 @@ public class DamageManager implements Listener, DamageHandler {
 			target.damage(result.getDamage(), player);
 	}
 
-	public AttackResult findInfo(Entity entity) {
+	public RegisteredAttack findInfo(Entity entity) {
 		for (DamageHandler handler : handlers)
 			if (handler.hasDamage(entity))
 				return handler.getDamage(entity);

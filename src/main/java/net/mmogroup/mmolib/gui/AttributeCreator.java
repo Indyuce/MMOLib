@@ -12,9 +12,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import net.mmogroup.mmolib.api.explorer.AltChar;
 import net.mmogroup.mmolib.api.explorer.ChatInput;
 import net.mmogroup.mmolib.api.explorer.ItemBuilder;
+import net.mmogroup.mmolib.api.util.AltChar;
 import net.mmogroup.mmolib.command.ExploreAttributesCommand;
 import net.mmogroup.mmolib.version.VersionMaterial;
 

@@ -1,49 +1,47 @@
 package net.mmogroup.mmolib.api.stat.handler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 
-import net.mmogroup.mmolib.MMOLib;
-import net.mmogroup.mmolib.api.player.MMOData;
-import net.mmogroup.mmolib.api.stat.SharedStat;
+import net.mmogroup.mmolib.api.stat.StatMap;
 
-/*
- * both used for the 'movement speed' and for the 'speed malus reduction'
- * stats because the movement speed must be refreshed every time one of
- * these stats are changed.
- */
-public class MovementSpeedStatHandler implements Consumer<MMOData> {
-	private static final double speedMalus = MMOLib.plugin.getConfig().getDouble("heavy-armors.speed-malus") / 100;
-	private static final List<String> heavyArmors = new ArrayList<>();
+public class MovementSpeedStatHandler implements Consumer<StatMap> {
 
-	static {
-		if (MMOLib.plugin.getConfig().getStringList("heavy-armors.list") == null)
-			MMOLib.plugin.getLogger().log(Level.INFO, "Could not load heavy armors list.");
-		else
-			MMOLib.plugin.getConfig().getStringList("heavy-armors.list").forEach(str -> {
-				String format = str.toUpperCase().replace("-", "_").replace(" ", "_");
-				try {
-					Material.valueOf(format);
-					heavyArmors.add(format);
-				} catch (IllegalArgumentException exception) {
-					MMOLib.plugin.getLogger().log(Level.INFO, "Could not read material from '" + format + "'");
-				}
-			});
+	@SuppressWarnings("deprecation")
+	@Override
+	public void accept(StatMap stats) {
+		AttributeInstance ins = stats.getPlayerData().getPlayer().getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+		removeModifiers(ins);
+
+		/*
+		 * calculate speed malus reduction (capped at 80%)
+		 */
+		double coef = 1 - Math.min(.8, Math.max(0, stats.getInstance("SPEED_MALUS_REDUCTION").getTotal() / 100));
+
+		// fix player walk speed
+		if (AttributeStatHandler.updateAttributes)
+			stats.getPlayerData().getPlayer().setWalkSpeed(.2f);
+
+		/*
+		 * unlike other attributes, MMOLib directly applies movement speed as
+		 * base value which is an important compatibility issue, can't see
+		 * anything better as of right now
+		 */
+		ins.setBaseValue(stats.getInstance("MOVEMENT_SPEED").getTotal(mod -> mod.getValue() < 0 ? mod.multiply(coef) : mod));
 	}
 
-	@Override
-	public void accept(MMOData data) {
-		double speedMalus = MovementSpeedStatHandler.speedMalus * (1 - Math.max(0, Math.min(1, data.getStatMap().getStat(SharedStat.SPEED_MALUS_REDUCTION) / 100)));
-		double movementSpeed = data.getStatMap().getStat(SharedStat.MOVEMENT_SPEED);
-
-		for (ItemStack item : data.getPlayer().getEquipment().getArmorContents())
-			if (item != null && heavyArmors.contains(item.getType().name()))
-				movementSpeed *= 1 - speedMalus;
-		data.getPlayer().setWalkSpeed((float) Math.min(1, movementSpeed));
+	/*
+	 * TODO remove mmoitems. in 1 year when corrupted data is gone
+	 */
+	private void removeModifiers(AttributeInstance ins) {
+		for (Iterator<AttributeModifier> iterator = ins.getModifiers().iterator(); iterator.hasNext();) {
+			AttributeModifier attribute = iterator.next();
+			if (attribute.getName().startsWith("mmolib.") || attribute.getName().startsWith("mmoitems."))
+				ins.removeModifier(attribute);
+		}
 	}
 }

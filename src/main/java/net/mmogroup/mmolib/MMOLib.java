@@ -6,9 +6,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.mmogroup.mmolib.api.player.MMOData;
+import net.mmogroup.mmolib.api.player.MMOPlayerData;
+import net.mmogroup.mmolib.api.stat.handler.AttributeStatHandler;
 import net.mmogroup.mmolib.command.ExploreAttributesCommand;
+import net.mmogroup.mmolib.comp.CitizensEntityHandler;
+import net.mmogroup.mmolib.comp.MyPetEntityHandler;
 import net.mmogroup.mmolib.comp.MythicMobsDamageHandler;
+import net.mmogroup.mmolib.comp.ShopKeepersEntityHandler;
 import net.mmogroup.mmolib.gui.PluginInventory;
 import net.mmogroup.mmolib.listener.DamageReduction;
 import net.mmogroup.mmolib.listener.MitigationListener;
@@ -16,6 +20,7 @@ import net.mmogroup.mmolib.listener.PlayerListener;
 import net.mmogroup.mmolib.listener.event.ArmorEquipEventListener;
 import net.mmogroup.mmolib.listener.event.PlayerAttackEventListener;
 import net.mmogroup.mmolib.manager.DamageManager;
+import net.mmogroup.mmolib.manager.EntityManager;
 import net.mmogroup.mmolib.version.ServerVersion;
 import net.mmogroup.mmolib.version.SpigotPlugin;
 import net.mmogroup.mmolib.version.nms.NMSHandler;
@@ -24,12 +29,12 @@ public class MMOLib extends JavaPlugin {
 	public static MMOLib plugin;
 
 	private NMSHandler nms;
-	private ServerVersion version;
+	private final ServerVersion version = new ServerVersion(Bukkit.getServer().getClass());
 	private final DamageManager damage = new DamageManager();
+	private final EntityManager entity = new EntityManager();
 
 	public void onLoad() {
 		plugin = this;
-		version = new ServerVersion(Bukkit.getServer().getClass());
 
 		try {
 			getLogger().log(Level.INFO, "Detected Bukkit Version: " + version.toString());
@@ -41,9 +46,10 @@ public class MMOLib extends JavaPlugin {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void onEnable() {
 		new SpigotPlugin(73855, this).checkForUpdate();
-		
+
 		saveDefaultConfig();
 
 		Bukkit.getPluginManager().registerEvents(damage, this);
@@ -56,15 +62,28 @@ public class MMOLib extends JavaPlugin {
 		if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null)
 			damage.registerHandler(new MythicMobsDamageHandler());
 
+		if (Bukkit.getPluginManager().getPlugin("Citizens") != null)
+			entity.registerHandler(new CitizensEntityHandler());
+
+		if (Bukkit.getPluginManager().getPlugin("ShopKeepers") != null) 
+			entity.registerHandler(new ShopKeepersEntityHandler());
+		
+		if (Bukkit.getPluginManager().getPlugin("MyPet") != null) 
+			entity.registerHandler(new MyPetEntityHandler());
+		
 		if (version.isStrictlyHigher(1, 12))
 			getCommand("exploreattributes").setExecutor(new ExploreAttributesCommand());
 
-		Bukkit.getOnlinePlayers().forEach(online -> MMOData.setup(online));
+		if (getConfig().getBoolean("fix-player-attributes"))
+			AttributeStatHandler.updateAttributes = true;
+
+		Bukkit.getOnlinePlayers().forEach(online -> MMOPlayerData.setup(online));
 	}
 
 	public void onDisable() {
 		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getOpenInventory() != null && player.getOpenInventory().getTopInventory().getHolder() != null && player.getOpenInventory().getTopInventory().getHolder() instanceof PluginInventory)
+			if (player.getOpenInventory() != null && player.getOpenInventory().getTopInventory().getHolder() != null
+					&& player.getOpenInventory().getTopInventory().getHolder() instanceof PluginInventory)
 				player.closeInventory();
 	}
 
@@ -78,5 +97,9 @@ public class MMOLib extends JavaPlugin {
 
 	public DamageManager getDamage() {
 		return damage;
+	}
+
+	public EntityManager getEntities() {
+		return entity;
 	}
 }

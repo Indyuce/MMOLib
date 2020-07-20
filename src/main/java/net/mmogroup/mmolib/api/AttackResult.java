@@ -16,7 +16,7 @@ public class AttackResult {
 	private final Set<DamageType> damageTypes;
 
 	public AttackResult(boolean successful, DamageType... types) {
-		this(successful, 0, types);
+		this(successful, 0, new HashSet<>());
 	}
 
 	public AttackResult(double damage, DamageType... types) {
@@ -55,6 +55,11 @@ public class AttackResult {
 		return damage;
 	}
 
+	public AttackResult setDamage(double value) {
+		damage = value;
+		return this;
+	}
+
 	public AttackResult addDamage(double value) {
 		damage += value;
 		return this;
@@ -76,5 +81,10 @@ public class AttackResult {
 
 	public void damage(Player player, LivingEntity target) {
 		MMOLib.plugin.getDamage().damage(player, target, this);
+	}
+
+	@Override
+	public String toString() {
+		return "{Damage=" + damage + ",Types=" + damageTypes.toString() + "}";
 	}
 }
